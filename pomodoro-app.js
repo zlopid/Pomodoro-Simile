@@ -3,28 +3,39 @@ $(function(){
 	var Timer = Backbone.Model.extend({
 		defaults: {
 			minutes: 0,
-			seconds: 5
+			seconds: 10,
+			paused: true
 		},
 
 		start: function() {
+			this.set({paused: false});
 			var doAgain = _.bind(this.tick, this);
 			_.delay(doAgain, 1000);
 		},
+		
+		pause: function() {
+			this.set({paused: true});
+		},
 
 		tick: function() {
-			// Update the time
-			if (this.get("seconds") == 0) {
-				this.set({minutes: this.get("minutes")-1, seconds: 59});
-			} else {
-				this.set({seconds: this.get("seconds")-1});
-			}
+			if (this.get("paused"))
+				return;
+			
+			this.decrementTime();
 			
 			// Notify when done
 			if ((this.get("minutes") == 0) && (this.get("seconds") == 0)) {
 				this.trigger("done");
-				return;
 			} else {
 				this.start();
+			}
+		},
+		
+		decrementTime: function() {
+			if (this.get("seconds") == 0) {
+				this.set({minutes: this.get("minutes")-1, seconds: 59});
+			} else {
+				this.set({seconds: this.get("seconds")-1});
 			}
 		}
 	});
@@ -32,11 +43,14 @@ $(function(){
 	var TimerView = Backbone.View.extend({
 		el: $("#counter"),
 		
+		events: {
+			"click": "toggle"
+		},
+		
 		initialize: function() {
 			this.model = new Timer;
 			this.render();
 			this.model.bind('change', this.render, this);
-			this.model.start();
 			
 			new TimerAlert({model: this.model});
 		},
@@ -47,8 +61,12 @@ $(function(){
 			$(this.el).html(minutes + ":" + ((seconds < 10) ? "0" : "") + seconds);
 		},
 		
-		done: function() {
-			alert("Time's up!");
+		toggle: function() {
+			if (this.model.get("paused")) {
+				this.model.start();
+			} else {
+				this.model.pause();
+			}
 		}
 	});
 	
