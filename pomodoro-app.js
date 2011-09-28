@@ -23,7 +23,6 @@ $(function(){
 			
 			this.decrementTime();
 			
-			// Notify when done
 			if ((this.get("minutes") == 0) && (this.get("seconds") == 0)) {
 				this.trigger("done");
 			} else {
