@@ -1,5 +1,7 @@
-$(function(){
-	
+$(function() {
+	/** 
+	* Timers decrement from their initial minutes and seconds. They can be paused.
+	*/
 	var Timer = Backbone.Model.extend({
 		defaults: {
 			minutes: 0,
@@ -39,19 +41,46 @@ $(function(){
 		}
 	});
 	
-	var TimerView = Backbone.View.extend({
-		el: $("#counter"),
+	/**
+	* Models the flow of a pomodoro session, with subsequent work and break countdowns.
+	*/
+	var PomodoroApp = Backbone.Model.extend({
+		defaults: {
+			workLength: {minutes: 0, seconds: 15},
+			breakLength: {minutes: 0, seconds: 5},
+			inBreak: false,
+		},
+		
+		initialize: function() {
+			this.timer = new Timer(this.get("workLength"))
+			this.timer.bind('done', this.onTimerDone, this);
+		},
+		
+		onTimerDone: function() {
+			if (this.get("inBreak")) {
+				this.timer.set(this.get("workLength"));
+			} else {
+				this.timer.set(this.get("breakLength"));
+				this.timer.start();
+			}	
+			this.set({inBreak: !this.get("inBreak")});
+		}
+	});
+	
+	// Display the current time left on #counter
+	var TimerCounterView = Backbone.View.extend({
+		el: $('#counter'),
 		
 		events: {
 			"click": "toggle"
 		},
 		
 		initialize: function() {
-			this.model = new Timer;
+			if (!this.model) 
+				throw "Cannot make a view without a model!";
+				
 			this.render();
 			this.model.bind('change', this.render, this);
-			
-			new TimerAlert({model: this.model});
 		},
 		
 		render: function() {
@@ -69,16 +98,27 @@ $(function(){
 		}
 	});
 	
-	// TimerAlert requires that you pass in the model
+	// Alert when any timer is done
 	var TimerAlert = Backbone.View.extend({
 		initialize: function() {
+			if (!this.model) 
+				throw "Cannot make a view without a model!";
+				
 			this.model.bind('done', this.done);
 		},
 		
 		done: function() {
 			alert("Time's up!");
 		}
-	})
+	});
 	
-	var Pomodoro = new TimerView();
+	var PomodoroAppView = Backbone.View.extend({
+		initialize: function() {
+			this.model = new PomodoroApp();
+			new TimerCounterView({model: this.model.timer});
+			new TimerAlert({model: this.model.timer});
+		}
+	});
+	
+	var Pomodoro = new PomodoroAppView();
 });
