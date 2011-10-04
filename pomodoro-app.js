@@ -95,6 +95,10 @@ $(function() {
 			} else {
 				this.model.pause();
 			}
+		},
+		
+		toggleBreak: function() {
+			$(this.el).toggleClass("break");
 		}
 	});
 	
@@ -115,8 +119,13 @@ $(function() {
 	var PomodoroAppView = Backbone.View.extend({
 		initialize: function() {
 			this.model = new PomodoroApp();
-			new TimerCounterView({model: this.model.timer});
+			this.model.bind("change:inBreak", this.toggleBreak, this);
+			this.counter = new TimerCounterView({model: this.model.timer});
 			new TimerAlert({model: this.model.timer});
+		},
+		
+		toggleBreak: function() {
+			this.counter.toggleBreak();
 		}
 	});
 	

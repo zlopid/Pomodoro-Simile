@@ -4,8 +4,6 @@ body {
 }
 
 #main-display {
-	background-color: rgb(230,230,230);
-	border: 1px solid white;
 	margin: 20px auto;
 	padding: 20px;
 	width: 150px;
@@ -13,5 +11,13 @@ body {
 	text-align: center;
 	font-size: 42px;
 	font-family: Helvetica, Arial, sans-serif;
-	color: black;
+	font-weight: lighter;
+	color: white;
+}
+
+.break {
+	color: rgb(75, 200, 25);
+	-moz-transition: color 2s linear;
+	-o-transition: color 2s linear;
+	-webkit-transition: color 2s linear;
 }
