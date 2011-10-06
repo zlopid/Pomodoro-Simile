@@ -1,12 +1,24 @@
 $(function() {
 	/** 
-	* Timers decrement from their initial minutes and seconds. They can be paused.
+	* A Pomodoro is one work period with one break period.
+	* This counts down the work period, and fires "done:work"
+	* Then immediately counts down the break period, and fires "done:break"
+	*
+	* It can be paused, or reset.
 	*/
-	var Timer = Backbone.Model.extend({
+	var Pomodoro = Backbone.Model.extend({
 		defaults: {
 			minutes: 0,
-			seconds: 10,
+			seconds: 2,
+			workLength: {minutes: 0, seconds: 8},
+			breakLength: {minutes: 0, seconds: 3},
+			inBreak: false,
 			paused: true
+		},
+
+		reset: function() {
+			this.set(this.get("workLength"));
+			this.set({paused: true, inBreak: false});
 		},
 
 		start: function() {
@@ -26,7 +38,15 @@ $(function() {
 			this.decrementTime();
 			
 			if ((this.get("minutes") == 0) && (this.get("seconds") == 0)) {
-				this.trigger("done");
+				if (this.get("inBreak")) {
+					this.reset();
+					this.trigger("done:break");
+				} else {	
+					this.set(this.get("breakLength"));
+					this.trigger("done:work");
+					this.set({inBreak: true});
+					this.start();
+				}
 			} else {
 				this.start();
 			}
@@ -41,34 +61,8 @@ $(function() {
 		}
 	});
 	
-	/**
-	* Models the flow of a pomodoro session, with subsequent work and break countdowns.
-	*/
-	var PomodoroApp = Backbone.Model.extend({
-		defaults: {
-			workLength: {minutes: 0, seconds: 15},
-			breakLength: {minutes: 0, seconds: 5},
-			inBreak: false,
-		},
-		
-		initialize: function() {
-			this.timer = new Timer(this.get("workLength"))
-			this.timer.bind('done', this.onTimerDone, this);
-		},
-		
-		onTimerDone: function() {
-			if (this.get("inBreak")) {
-				this.timer.set(this.get("workLength"));
-			} else {
-				this.timer.set(this.get("breakLength"));
-				this.timer.start();
-			}	
-			this.set({inBreak: !this.get("inBreak")});
-		}
-	});
-	
-	// Display the current time left on #counter
-	var TimerCounterView = Backbone.View.extend({
+	// Display the current time left in #counter
+	var PomodoroCounterView = Backbone.View.extend({
 		el: $('#counter'),
 		
 		events: {
@@ -81,6 +75,7 @@ $(function() {
 				
 			this.render();
 			this.model.bind('change', this.render, this);
+			this.model.bind('change:inBreak', this.toggleBreak, this);
 		},
 		
 		render: function() {
@@ -103,31 +98,31 @@ $(function() {
 	});
 	
 	// Alert when any timer is done
-	var TimerAlert = Backbone.View.extend({
+	var PomodoroAlert = Backbone.View.extend({
 		initialize: function() {
 			if (!this.model) 
 				throw "Cannot make a view without a model!";
 				
-			this.model.bind('done', this.done);
+			this.model.bind('done:break', this.doneBreak, this);	
+			this.model.bind('done:work', this.doneWork, this);
 		},
 		
-		done: function() {
-			alert("Time's up!");
+		doneBreak: function() {
+			alert("Break is done! Hit the timer when you're ready for another");
+		},
+
+		doneWork: function() {
+			alert("Time for a break!");
 		}
 	});
 	
-	var PomodoroAppView = Backbone.View.extend({
+	var PomodoroApp = Backbone.View.extend({
 		initialize: function() {
-			this.model = new PomodoroApp();
-			this.model.bind("change:inBreak", this.toggleBreak, this);
-			this.counter = new TimerCounterView({model: this.model.timer});
-			new TimerAlert({model: this.model.timer});
-		},
-		
-		toggleBreak: function() {
-			this.counter.toggleBreak();
+			this.model = new Pomodoro();
+			new PomodoroCounterView({model: this.model});
+			new PomodoroAlert({model: this.model});
 		}
 	});
 	
-	var Pomodoro = new PomodoroAppView();
+	var Pomodoro = new PomodoroApp();
 });
