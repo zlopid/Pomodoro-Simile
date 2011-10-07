@@ -3,10 +3,9 @@ body {
 	color: white;
 }
 
-#main-display {
-	margin: 20px auto;
-	padding: 20px;
-	width: 150px;
+#counter {
+	margin: 40px auto;
+	cursor: pointer;
 	
 	text-align: center;
 	font-size: 42px;
@@ -15,9 +14,20 @@ body {
 	color: white;
 }
 
-.break {
+#counter.break {
 	color: rgb(75, 200, 25);
 	-moz-transition: color 2s linear;
 	-o-transition: color 2s linear;
 	-webkit-transition: color 2s linear;
+}
+
+.action {
+	visibility: hidden;
+	opacity: 0.5;
+	
+	font-size: 12px;
+}
+
+#counter:hover .action {
+	visibility: visible;
 }

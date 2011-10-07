@@ -14,9 +14,11 @@
 </head>
 
 <body>
-<div id="main-display">
-	<div id="counter">0:00</div>
-</div>
+<div id="counter">0:00</div>
+<script type="text/template" id="counter-template">
+<%= formattedTime %>
+<div class="action"><%= clickAction %></div>
+</script>
 </body>
 
 </html>

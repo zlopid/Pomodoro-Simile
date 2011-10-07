@@ -65,6 +65,8 @@ $(function() {
 	var PomodoroCounterView = Backbone.View.extend({
 		el: $('#counter'),
 		
+		template: _.template($("#counter-template").html()),
+		
 		events: {
 			"click": "toggle"
 		},
@@ -81,7 +83,12 @@ $(function() {
 		render: function() {
 			var minutes = this.model.get("minutes");
 			var seconds = this.model.get("seconds");
-			$(this.el).html(minutes + ":" + ((seconds < 10) ? "0" : "") + seconds);
+			
+			$(this.el).html(this.template({
+				formattedTime: minutes + ":" + ((seconds < 10) ? "0" : "") + seconds,
+				clickAction: (this.model.get("paused") ? "resume" : "pause")
+			}))
+			return this;
 		},
 		
 		toggle: function() {
