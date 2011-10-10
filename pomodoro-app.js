@@ -8,10 +8,10 @@ $(function() {
 	*/
 	var Pomodoro = Backbone.Model.extend({
 		defaults: {
-			minutes: 0,
-			seconds: 2,
-			workLength: {minutes: 0, seconds: 8},
-			breakLength: {minutes: 0, seconds: 3},
+			minutes: 25,
+			seconds: 0,
+			workLength: {minutes: 25, seconds: 0},
+			breakLength: {minutes: 5, seconds: 0},
 			inBreak: false,
 			paused: true
 		},
@@ -131,5 +131,15 @@ $(function() {
 		}
 	});
 	
-	var Pomodoro = new PomodoroApp();
+	
+	pomo = new PomodoroApp();
 });
+
+/**
+* Call UseTestSettings(this.pomo)
+* to set the Pomodoro to a short duration for testing
+*/
+function UseTestSettings(pomo) {
+	pomo.model.set({workLength: {minutes: 0, seconds: 5}, breakLength: {minutes: 0, seconds: 3}});
+	pomo.model.reset();
+}
