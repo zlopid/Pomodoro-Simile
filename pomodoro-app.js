@@ -8,17 +8,19 @@ $(function() {
 	*/
 	var Pomodoro = Backbone.Model.extend({
 		defaults: {
-			minutes: 25,
 			seconds: 0,
-			workLength: {minutes: 25, seconds: 0},
-			breakLength: {minutes: 5, seconds: 0},
+			workLength: 25*60, // in seconds
+			breakLength: 25*60, // in seconds
 			inBreak: false,
 			paused: true
 		},
+		
+		initialize: function() {
+			this.reset();
+		},
 
 		reset: function() {
-			this.set(this.get("workLength"));
-			this.set({paused: true, inBreak: false});
+			this.set({seconds: this.get("workLength"), paused: true, inBreak: false});
 		},
 
 		start: function() {
@@ -35,28 +37,20 @@ $(function() {
 			if (this.get("paused"))
 				return;
 			
-			this.decrementTime();
+			var secondsLeft = this.get("seconds")-1;
+			this.set({seconds: secondsLeft})
 			
-			if ((this.get("minutes") == 0) && (this.get("seconds") == 0)) {
+			if (secondsLeft <= 0) {
 				if (this.get("inBreak")) {
 					this.reset();
 					this.trigger("done:break");
 				} else {	
-					this.set(this.get("breakLength"));
+					this.set({seconds: this.get("breakLength"), inBreak: true});
 					this.trigger("done:work");
-					this.set({inBreak: true});
 					this.start();
 				}
 			} else {
 				this.start();
-			}
-		},
-		
-		decrementTime: function() {
-			if (this.get("seconds") == 0) {
-				this.set({minutes: this.get("minutes")-1, seconds: 59});
-			} else {
-				this.set({seconds: this.get("seconds")-1});
 			}
 		}
 	});
@@ -81,8 +75,8 @@ $(function() {
 		},
 		
 		render: function() {
-			var minutes = this.model.get("minutes");
-			var seconds = this.model.get("seconds");
+			var minutes = Math.floor(this.model.get("seconds")/60);
+			var seconds = this.model.get("seconds")%60;
 			
 			$(this.el).html(this.template({
 				formattedTime: minutes + ":" + ((seconds < 10) ? "0" : "") + seconds,
@@ -140,6 +134,6 @@ $(function() {
 * to set the Pomodoro to a short duration for testing
 */
 function UseTestSettings(pomo) {
-	pomo.model.set({workLength: {minutes: 0, seconds: 5}, breakLength: {minutes: 0, seconds: 3}});
+	pomo.model.set({workLength: 5, breakLength: 3, seconds: 2});
 	pomo.model.reset();
 }
