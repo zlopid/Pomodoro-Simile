@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-  <title>Pomodoro</title>
+  <title>Pomodoro-Simile</title>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.1.7/underscore-min.js" type="text/javascript" charset="utf-8"></script>
@@ -14,11 +14,14 @@
 </head>
 
 <body>
-<div id="counter">0:00</div>
-<script type="text/template" id="counter-template">
-<%= formattedTime %>
-<div class="action"><%= clickAction %></div>
-</script>
+<div id="counter">
+	0:00
+	<script type="text/template" id="counter-template">
+	<%= formattedTime %>
+	<div class="action"><%= clickAction %></div>
+	</script>
+</div>
+<div id="notify">Enable Desktop Notifications</div>
 </body>
 
 </html>

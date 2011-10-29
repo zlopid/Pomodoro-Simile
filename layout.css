@@ -1,5 +1,7 @@
 body {
 	background-color: rgb(26,26,26);
+	font-family: Helvetica, Arial, sans-serif;
+	font-weight: lighter;
 	color: white;
 }
 
@@ -9,9 +11,6 @@ body {
 	
 	text-align: center;
 	font-size: 42px;
-	font-family: Helvetica, Arial, sans-serif;
-	font-weight: lighter;
-	color: white;
 }
 
 #counter.break {
@@ -30,4 +29,13 @@ body {
 
 #counter:hover .action {
 	visibility: visible;
+}
+
+#notify {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	cursor: pointer;
+	
+	font-size: 12px;
 }

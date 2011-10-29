@@ -25,8 +25,7 @@ $(function() {
 
 		start: function() {
 			this.set({paused: false});
-			var doAgain = _.bind(this.tick, this);
-			_.delay(doAgain, 1000);
+			_.delay(_.bind(this.tick, this), 1000);
 		},
 		
 		pause: function() {
@@ -98,22 +97,57 @@ $(function() {
 		}
 	});
 	
-	// Alert when any timer is done
-	var PomodoroAlert = Backbone.View.extend({
+	// Notify when any timer is done, using desktop notifications if possible,
+	// and alert boxes if not
+	var PomodoroNotifyView = Backbone.View.extend({
+		el: $("#notify"),
+		
+		events: {
+			"click": "requestPermission"
+		},
+		
 		initialize: function() {
 			if (!this.model) 
 				throw "Cannot make a view without a model!";
-				
+
 			this.model.bind('done:break', this.doneBreak, this);	
 			this.model.bind('done:work', this.doneWork, this);
+			
+			this.render();
+		},
+		
+		render: function() {
+			if (!window.webkitNotifications
+				|| window.webkitNotifications.checkPermission() == 0) {
+				$(this.el).css("display", "none");
+			}
+		},
+		
+		requestPermission: function() {
+			if (window.webkitNotifications) {
+				window.webkitNotifications.requestPermission(_.bind(function() {
+					if (window.webkitNotifications.checkPermission() == 0) // 0 is PERMISSION_ALLOWED
+						window.webkitNotifications.createNotification("", "Thanks!", "Pomodoro-Simile will use desktop notifications rather than alert boxes.").show();
+					this.render();
+				}, this));
+			}
+		},
+		
+		notify: function(title, message) {
+			if (window.webkitNotifications
+				&& window.webkitNotifications.checkPermission() == 0) { // 0 is PERMISSION_ALLOWED
+				window.webkitNotifications.createNotification("", title, message).show();
+			} else {
+				alert(title + " " + message);
+			}
 		},
 		
 		doneBreak: function() {
-			alert("Break is done! Hit the timer when you're ready for another");
+			this.notify("The break is done!","Hit the timer when you're ready for another.");
 		},
 
 		doneWork: function() {
-			alert("Time for a break!");
+			this.notify("Time for a break!","Get up, stretch, and rest your brain.");
 		}
 	});
 	
@@ -121,10 +155,9 @@ $(function() {
 		initialize: function() {
 			this.model = new Pomodoro();
 			new PomodoroCounterView({model: this.model});
-			new PomodoroAlert({model: this.model});
+			new PomodoroNotifyView({model: this.model});
 		}
 	});
-	
 	
 	pomo = new PomodoroApp();
 });
