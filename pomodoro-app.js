@@ -54,7 +54,9 @@ $(function() {
 		}
 	});
 	
-	// Display the current time left in #counter
+	/**
+	 * Display the current time left in the #counter
+	 */
 	var PomodoroCounterView = Backbone.View.extend({
 		el: $('#counter'),
 		
@@ -97,8 +99,10 @@ $(function() {
 		}
 	});
 	
-	// Notify when any timer is done, using desktop notifications if possible,
-	// and alert boxes if not
+	/**
+	 * Notify when any timer is done, using desktop notifications if possible,
+	 * and alert boxes if not
+	 */
 	var PomodoroNotifyView = Backbone.View.extend({
 		el: $("#notify"),
 		
@@ -110,23 +114,28 @@ $(function() {
 			if (!this.model) 
 				throw "Cannot make a view without a model!";
 
-			this.model.bind('done:break', this.doneBreak, this);	
-			this.model.bind('done:work', this.doneWork, this);
+			this.model.bind('done:break', this.breakFinished, this);	
+			this.model.bind('done:work', this.workFinished, this);
 			
 			this.render();
 		},
 		
 		render: function() {
 			if (!window.webkitNotifications
-				|| window.webkitNotifications.checkPermission() == 0) {
+				|| this.hasNotificationPermission()) {
 				$(this.el).css("display", "none");
 			}
 		},
 		
+		hasNotificationPermission: function() {
+			return (window.webkitNotifications
+					&& window.webkitNotifications.checkPermission() == 0); // 0 is PERMISSION_ALLOWED
+		}
+		
 		requestPermission: function() {
 			if (window.webkitNotifications) {
 				window.webkitNotifications.requestPermission(_.bind(function() {
-					if (window.webkitNotifications.checkPermission() == 0) // 0 is PERMISSION_ALLOWED
+					if (this.hasNotificationPermission())
 						window.webkitNotifications.createNotification("", "Thanks!", "Pomodoro-Simile will use desktop notifications rather than alert boxes.").show();
 					this.render();
 				}, this));
@@ -134,19 +143,18 @@ $(function() {
 		},
 		
 		notify: function(title, message) {
-			if (window.webkitNotifications
-				&& window.webkitNotifications.checkPermission() == 0) { // 0 is PERMISSION_ALLOWED
+			if (this.hasNotificationPermission()) {
 				window.webkitNotifications.createNotification("", title, message).show();
 			} else {
 				alert(title + " " + message);
 			}
 		},
 		
-		doneBreak: function() {
+		breakFinished: function() {
 			this.notify("The break is done!","Hit the timer when you're ready for another.");
 		},
 
-		doneWork: function() {
+		workFinished: function() {
 			this.notify("Time for a break!","Get up, stretch, and rest your brain.");
 		}
 	});
