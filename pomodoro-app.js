@@ -133,13 +133,14 @@ $(function() {
 		}
 		
 		requestPermission: function() {
-			if (window.webkitNotifications) {
-				window.webkitNotifications.requestPermission(_.bind(function() {
-					if (this.hasNotificationPermission())
-						window.webkitNotifications.createNotification("", "Thanks!", "Pomodoro-Simile will use desktop notifications rather than alert boxes.").show();
-					this.render();
-				}, this));
-			}
+			if (!window.webkitNotifications)
+				return;
+			
+			window.webkitNotifications.requestPermission(_.bind(function() {
+				if (this.hasNotificationPermission())
+					window.webkitNotifications.createNotification("", "Thanks!", "Pomodoro-Simile will use desktop notifications rather than alert boxes.").show();
+				this.render();
+			}, this));
 		},
 		
 		notify: function(title, message) {
