@@ -130,7 +130,7 @@ $(function() {
 		hasNotificationPermission: function() {
 			return (window.webkitNotifications
 					&& window.webkitNotifications.checkPermission() == 0); // 0 is PERMISSION_ALLOWED
-		}
+		},
 		
 		requestPermission: function() {
 			if (!window.webkitNotifications)
