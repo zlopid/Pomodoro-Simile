@@ -1,4 +1,26 @@
 $(function() {
+	/** Calls onTick every second, and can be paused or restarted */
+	var Ticker = function(onTick) {
+		this.paused = true;
+		
+		this.start = function() {
+			this.paused = false;
+			_.delay(_.bind(this.tick, this), 1000); // 1000 = 1 second in milliseconds
+		}
+		
+		this.pause = function() {
+			this.paused = true;
+		}
+		
+		this.tick = function() {
+			if (this.paused)
+				return;
+				
+			this.start();
+			onTick();
+		}
+	}
+	
 	/** 
 	* A Pomodoro is one work period with one break period.
 	* This counts down the work period, and fires "done:work"
@@ -8,49 +30,45 @@ $(function() {
 	*/
 	var Pomodoro = Backbone.Model.extend({
 		defaults: {
-			seconds: 0,
 			workLength: 25*60, // in seconds
-			breakLength: 25*60, // in seconds
-			inBreak: false,
-			paused: true
+			breakLength: 5*60, // in seconds
+			seconds: 25*60,
+			inBreak: false
 		},
 		
 		initialize: function() {
-			this.reset();
+			this.ticker = new Ticker(_.bind(function() {
+				var secondsLeft = this.get("seconds")-1;
+				this.set({seconds: secondsLeft})
+			
+				if (secondsLeft <= 0) {
+					if (this.get("inBreak")) {
+						this.set({seconds: this.get("workLength"), inBreak: false});
+						this.trigger("done:break");
+						this.ticker.pause();
+					} else {
+						this.set({seconds: this.get("breakLength"), inBreak: true});
+						this.trigger("done:work");
+					}
+				}
+			}, this));
 		},
 
 		reset: function() {
-			this.set({seconds: this.get("workLength"), paused: true, inBreak: false});
+			this.set({seconds: this.get("workLength"), inBreak: false});
+			this.pause();
 		},
 
 		start: function() {
-			this.set({paused: false});
-			_.delay(_.bind(this.tick, this), 1000);
+			this.ticker.start();
 		},
 		
 		pause: function() {
-			this.set({paused: true});
+			this.ticker.pause();
 		},
-
-		tick: function() {
-			if (this.get("paused"))
-				return;
-			
-			var secondsLeft = this.get("seconds")-1;
-			this.set({seconds: secondsLeft})
-			
-			if (secondsLeft <= 0) {
-				if (this.get("inBreak")) {
-					this.reset();
-					this.trigger("done:break");
-				} else {	
-					this.set({seconds: this.get("breakLength"), inBreak: true});
-					this.trigger("done:work");
-					this.start();
-				}
-			} else {
-				this.start();
-			}
+		
+		isPaused: function() {
+			return this.ticker.paused;
 		}
 	});
 	
@@ -81,13 +99,13 @@ $(function() {
 			
 			$(this.el).html(this.template({
 				formattedTime: minutes + ":" + ((seconds < 10) ? "0" : "") + seconds,
-				clickAction: (this.model.get("paused") ? "resume" : "pause")
+				clickAction: (this.model.isPaused() ? "resume" : "pause")
 			}))
 			return this;
 		},
 		
 		toggle: function() {
-			if (this.model.get("paused")) {
+			if (this.model.isPaused()) {
 				this.model.start();
 			} else {
 				this.model.pause();
@@ -130,7 +148,7 @@ $(function() {
 		hasNotificationPermission: function() {
 			return (window.webkitNotifications
 					&& window.webkitNotifications.checkPermission() == 0); // 0 is PERMISSION_ALLOWED
-		}
+		},
 		
 		requestPermission: function() {
 			if (!window.webkitNotifications)
