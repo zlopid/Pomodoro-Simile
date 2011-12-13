@@ -14,14 +14,12 @@
 </head>
 
 <body>
-<div id="counter">
-	0:00
-	<script type="text/template" id="counter-template">
-	<%= formattedTime %>
-	<div class="action"><%= clickAction %></div>
-	</script>
-</div>
+<div id="counter"></div>
 <div id="notify">Enable Desktop Notifications</div>
-</body>
 
+<script type="text/template" id="counter-template">
+<%= minutes + ":" + ((seconds < 10) ? "0" : "") + seconds %>
+<div class="action"><%= isPaused? "resume" : "pause" %></div>
+</script>
+</body>
 </html>

@@ -94,12 +94,10 @@ $(function() {
 		},
 		
 		render: function() {
-			var minutes = Math.floor(this.model.get("seconds")/60);
-			var seconds = this.model.get("seconds")%60;
-			
 			$(this.el).html(this.template({
-				formattedTime: minutes + ":" + ((seconds < 10) ? "0" : "") + seconds,
-				clickAction: (this.model.isPaused() ? "resume" : "pause")
+				minutes: Math.floor(this.model.get("seconds")/60),
+				seconds: this.model.get("seconds")%60,
+				isPaused: this.model.isPaused()
 			}))
 			return this;
 		},
